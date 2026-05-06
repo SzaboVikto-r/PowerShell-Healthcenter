@@ -1,0 +1,26 @@
+{
+  "computerName": "SRV-FILES-02",
+  "collectedAt": "2026-05-05 09:12:03",
+  "drives": [
+    {
+      "letter": "C:",
+      "type": "Local Disk",
+      "label": "OS",
+      "fileSystem": "NTFS",
+      "totalBytes": 256060514304,
+      "usedBytes": 243257488589,
+      "freeBytes": 12803025715,
+      "usedPercent": 95.0
+    },
+    {
+      "letter": "D:",
+      "type": "Local Disk",
+      "label": "SharedFiles",
+      "fileSystem": "NTFS",
+      "totalBytes": 8796093022208,
+      "usedBytes": 5277655813325,
+      "freeBytes": 3518437208883,
+      "usedPercent": 60.0
+    }
+  ]
+}

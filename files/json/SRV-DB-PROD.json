@@ -1,0 +1,36 @@
+{
+  "computerName": "SRV-DB-PROD",
+  "collectedAt": "2026-05-06 14:35:44",
+  "drives": [
+    {
+      "letter": "C:",
+      "type": "Local Disk",
+      "label": "System",
+      "fileSystem": "NTFS",
+      "totalBytes": 107374182400,
+      "usedBytes": 48318382080,
+      "freeBytes": 59055800320,
+      "usedPercent": 45.0
+    },
+    {
+      "letter": "E:",
+      "type": "Local Disk",
+      "label": "SQLData",
+      "fileSystem": "ReFS",
+      "totalBytes": 2199023255552,
+      "usedBytes": 1979120930000,
+      "freeBytes": 219902325552,
+      "usedPercent": 90.0
+    },
+    {
+      "letter": "F:",
+      "type": "Local Disk",
+      "label": "Backup",
+      "fileSystem": "NTFS",
+      "totalBytes": 4398046511104,
+      "usedBytes": 3078232557773,
+      "freeBytes": 1319813953331,
+      "usedPercent": 70.0
+    }
+  ]
+}
