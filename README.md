@@ -35,15 +35,6 @@ Opcionálisan megadhatsz más kimeneti mappát:
 ### 2. Dashboard megnyitása
 Nyisd meg a `files\index.html` fájlt böngészőben.
 
-> ⚠️ Közvetlenül fájlként (`file://`) megnyitva a böngésző CORS
-> szabályai blokkolhatják a JSON betöltést.
-> Használj egy egyszerű webszervert:
-> ```powershell
-> cd C:\Users\Fiok_1\Downloads\PowerShell_Healthcenter\files
-> python -m http.server 8080
-> # vagy Node.js:  npx serve .
-> ```
-> Majd nyisd meg: `http://localhost:8080`
 
 ### 3. Kézi manifest frissítés (opcionális)
 Ha kézzel másolsz JSON-t a mappába (script futtatása nélkül):
