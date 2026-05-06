@@ -5,7 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Disk Monitor – HealthCenter</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600;700&family=Nunito:wght@700;800&display=swap" rel="stylesheet">
 <style>
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -97,9 +98,10 @@
     max-width: 1500px;
     margin: 0 auto;
     padding: 1rem 2rem 3rem;
-    display: flex;
-    flex-direction: column;
-    gap: 1.5rem;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    gap: 0.85rem;
+    align-items: start;
   }
 
   /* ── Machine Card ────────────────────────────────────────────── */
@@ -108,78 +110,86 @@
     border: 1px solid var(--border);
     border-radius: var(--radius);
     overflow: hidden;
-    animation: card-in 0.45s ease both;
   }
 
-  @keyframes card-in {
-    from { opacity: 0; transform: translateY(14px); }
-    to   { opacity: 1; transform: translateY(0); }
-  }
+  .machine-card:hover { border-color: var(--border-hi); }
 
-  /* ── Card Header (matches Image 1) ───────────────────────────── */
+  /* ── Card Header ─────────────────────────────────────────────── */
   .card-header {
     display: flex;
     align-items: center;
-    gap: 0.65rem;
-    padding: 0.85rem 1.25rem;
+    gap: 0.7rem;
+    padding: 0.75rem 1rem;
     background: var(--surface-2);
-    border-bottom: 1px solid var(--border);
+    cursor: pointer;
+    user-select: none;
   }
 
+  .card-header:hover { background: var(--surface-3); }
+
   .pc-icon {
-    width: 32px; height: 32px;
+    width: 30px; height: 30px;
     flex-shrink: 0;
+  }
+
+  /* hostname + date stacked, fills remaining space */
+  .card-main {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .card-name-row {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    min-width: 0;
   }
 
   .card-hostname {
     font-family: var(--mono);
     font-weight: 700;
-    font-size: 0.92rem;
+    font-size: 0.88rem;
     letter-spacing: 0.02em;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
     flex: 1;
+    min-width: 0;
   }
 
-  .status-badge {
+  /* colored dot + drive count */
+  .sev-pill {
     display: flex;
     align-items: center;
-    gap: 0.4rem;
-    padding: 0.2rem 0.65rem;
-    border-radius: 20px;
+    gap: 0.3rem;
+    flex-shrink: 0;
     font-family: var(--mono);
-    font-size: 0.72rem;
-    font-weight: 600;
+    font-size: 0.78rem;
+    font-weight: 700;
   }
 
-  .status-badge .dot {
-    width: 8px; height: 8px;
+  .sev-pill .dot {
+    width: 9px; height: 9px;
     border-radius: 50%;
     flex-shrink: 0;
   }
 
-  .status-badge.ok   { background: var(--green-dim); color: var(--green); }
-  .status-badge.ok .dot   { background: var(--green); box-shadow: 0 0 6px var(--green); }
-  .status-badge.warn { background: var(--yellow-dim); color: var(--yellow); }
-  .status-badge.warn .dot { background: var(--yellow); box-shadow: 0 0 6px var(--yellow); }
-  .status-badge.crit { background: var(--red-dim); color: var(--red); }
-  .status-badge.crit .dot { background: var(--red); box-shadow: 0 0 6px var(--red); }
+  .sev-pill.ok   .dot { background: var(--green); }
+  .sev-pill.warn .dot { background: var(--yellow); }
+  .sev-pill.crit .dot { background: var(--red); }
 
-  .drive-count-badge {
-    font-family: var(--mono);
-    font-size: 0.72rem;
-    font-weight: 700;
-    color: var(--text-dim);
-    background: var(--surface-3);
-    border: 1px solid var(--border);
-    border-radius: 6px;
-    padding: 0.15rem 0.5rem;
-    margin-left: 0.25rem;
-  }
+  .sev-pill.ok   .sev-count { color: var(--green); }
+  .sev-pill.warn .sev-count { color: var(--yellow); }
+  .sev-pill.crit .sev-count { color: var(--red); }
 
   .card-date {
     font-family: var(--mono);
-    font-size: 0.7rem;
+    font-size: 0.67rem;
     color: var(--text-muted);
+    margin-top: 0.18rem;
     white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
   }
 
   /* ── Card Body: Donut + Table layout ─────────────────────────── */
@@ -224,8 +234,6 @@
 
   .donut-fill {
     stroke-linecap: round;
-    transition: stroke-dasharray 1.2s cubic-bezier(0.22, 1, 0.36, 1),
-                stroke 0.4s ease;
   }
 
   .donut-center {
@@ -370,15 +378,266 @@
   .empty p { max-width: 420px; margin: 0 auto; line-height: 1.7; }
   .empty code { background: var(--surface-2); padding: 0.15rem 0.45rem; border-radius: 4px; font-family: var(--mono); font-size: 0.85rem; }
 
+  /* ── Active (selected) card ──────────────────────────────────── */
+  .machine-card.selected {
+    border-color: var(--green);
+  }
+
+  /* ── Clickable card header ───────────────────────────────────── */
+  .card-header {
+    cursor: pointer;
+    user-select: none;
+    transition: background 0.18s;
+  }
+
+  .card-header:hover { background: var(--surface-3); }
+
+  /* ── Modal overlay ───────────────────────────────────────────── */
+  .modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(8, 11, 18, 0.88);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    padding: 1.5rem;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.15s;
+  }
+
+  .modal-overlay.open {
+    opacity: 1;
+    pointer-events: all;
+  }
+
+  .modal-card {
+    background: var(--surface);
+    border: 1px solid var(--border-hi);
+    border-radius: var(--radius);
+    width: 100%;
+    max-width: 920px;
+    max-height: 90vh;
+    overflow-y: auto;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.5);
+    transform: translateY(10px);
+    transition: transform 0.18s ease-out;
+    will-change: transform;
+  }
+
+  .modal-overlay.open .modal-card {
+    transform: translateY(0);
+  }
+
+  .modal-header {
+    display: flex;
+    align-items: center;
+    gap: 0.65rem;
+    padding: 0.85rem 1.25rem;
+    background: var(--surface-2);
+    border-bottom: 1px solid var(--border);
+    position: sticky;
+    top: 0;
+    z-index: 1;
+  }
+
+  .modal-close {
+    margin-left: auto;
+    background: none;
+    border: none;
+    color: var(--text-muted);
+    cursor: pointer;
+    padding: 0.25rem;
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    transition: color 0.15s, background 0.15s;
+    flex-shrink: 0;
+  }
+
+  .modal-close:hover { color: var(--text); background: var(--surface-3); }
+  .modal-close svg { width: 18px; height: 18px; }
+
+  /* ── Modal two-column body ───────────────────────────────────── */
+  .modal-cols {
+    display: flex;
+    align-items: stretch;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .modal-col-left {
+    flex: 1;
+    border-right: 1px solid var(--border);
+    padding: 1.1rem 1.5rem;
+    min-width: 0;
+  }
+
+  .modal-col-right {
+    flex: 1.4;
+    padding: 1.1rem 1.5rem;
+    min-width: 0;
+  }
+
+  /* ── Section blocks inside modal ─────────────────────────────── */
+  .section-block {
+    padding: 1.1rem 1.5rem;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .section-block:last-child { border-bottom: none; }
+
+  .section-label {
+    font-size: 0.68rem;
+    font-weight: 700;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    margin-bottom: 0.85rem;
+  }
+
+  /* ── Overview tiles ──────────────────────────────────────────── */
+  .overview-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.65rem;
+  }
+
+  .ov-tile {
+    flex: 1;
+    min-width: 110px;
+    background: var(--surface-3);
+    border: 1px solid var(--border-hi);
+    border-radius: var(--radius-sm);
+    padding: 0.7rem 1rem;
+  }
+
+  .ov-tile.ok      { border-color: rgba(45,212,160,0.35); background: rgba(45,212,160,0.06); }
+  .ov-tile.warn    { border-color: rgba(245,183,49,0.35);  background: rgba(245,183,49,0.06); }
+  .ov-tile.crit    { border-color: rgba(240,68,62,0.35);   background: rgba(240,68,62,0.06); }
+  .ov-tile.neutral { border-color: var(--border-hi); }
+
+  .ov-value {
+    font-family: var(--mono);
+    font-size: 1.3rem;
+    font-weight: 700;
+    line-height: 1;
+    margin-bottom: 0.3rem;
+  }
+
+  .ov-tile.ok      .ov-value { color: var(--green); }
+  .ov-tile.warn    .ov-value { color: var(--yellow); }
+  .ov-tile.crit    .ov-value { color: var(--red); }
+  .ov-tile.neutral .ov-value { color: var(--text); }
+
+  .ov-label {
+    font-size: 0.65rem;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    font-weight: 600;
+  }
+
+  /* ── Per-drive tiles ─────────────────────────────────────────── */
+  .drives-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.65rem;
+  }
+
+  .drive-tile {
+    background: var(--surface-3);
+    border: 1px solid var(--border-hi);
+    border-radius: var(--radius-sm);
+    padding: 0.8rem 1rem;
+    display: flex;
+    align-items: center;
+    gap: 0.85rem;
+    min-width: 190px;
+    flex: 1;
+    max-width: 260px;
+  }
+
+  .drive-tile.ok   { border-color: rgba(45,212,160,0.3); }
+  .drive-tile.warn { border-color: rgba(245,183,49,0.3); }
+  .drive-tile.crit { border-color: rgba(240,68,62,0.3); }
+
+  .mini-donut-wrap {
+    position: relative;
+    width: 52px; height: 52px;
+    flex-shrink: 0;
+  }
+
+  .mini-donut-wrap svg {
+    width: 100%; height: 100%;
+    transform: rotate(-90deg);
+  }
+
+  .mini-donut-center {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: var(--mono);
+    font-size: 0.62rem;
+    font-weight: 700;
+    color: var(--text);
+  }
+
+  .drive-tile-info { flex: 1; min-width: 0; }
+
+  .drive-tile-letter {
+    font-family: var(--mono);
+    font-weight: 700;
+    font-size: 1rem;
+    color: var(--accent);
+    line-height: 1;
+  }
+
+  .drive-tile-label {
+    font-size: 0.72rem;
+    color: var(--text-dim);
+    margin: 0.2rem 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .drive-tile-sizes {
+    font-family: var(--mono);
+    font-size: 0.68rem;
+    color: var(--text-muted);
+    line-height: 1.5;
+  }
+
+  .drive-tile-pct {
+    font-family: var(--mono);
+    font-size: 0.8rem;
+    font-weight: 700;
+    text-align: right;
+    flex-shrink: 0;
+  }
+
+  .drive-tile-pct.ok   { color: var(--green); }
+  .drive-tile-pct.warn { color: var(--yellow); }
+  .drive-tile-pct.crit { color: var(--red); }
+
   /* ── Responsive ──────────────────────────────────────────────── */
+  @media (max-width: 900px) {
+    .modal-cols { flex-direction: column; }
+    .modal-col-left { border-right: none; border-bottom: 1px solid var(--border); }
+  }
+
   @media (max-width: 700px) {
     .page-header { padding: 1.25rem 1rem 0.5rem; }
-    .grid { padding: 1rem 1rem 2rem; }
-    .card-body { padding: 1rem; }
+    .grid { padding: 1rem 1rem 2rem; grid-template-columns: 1fr; }
     .storage-layout { flex-direction: column; align-items: center; }
     .donut-wrap { width: 150px; height: 150px; }
     .card-footer { flex-wrap: wrap; }
     .footer-stat { min-width: 50%; border-bottom: 1px solid var(--border); }
+    .overview-grid { gap: 0.5rem; }
+    .ov-tile { min-width: 90px; }
   }
 
   @media (max-width: 420px) {
@@ -407,6 +666,13 @@
   <div class="loading">
     <div class="spinner"></div>
     <p>JSON fájlok betöltése…</p>
+  </div>
+</div>
+
+<div class="modal-overlay" id="modalOverlay" onclick="overlayClick(event)">
+  <div class="modal-card" id="modalCard">
+    <div class="modal-header" id="modalHeader"></div>
+    <div id="modalBody"></div>
   </div>
 </div>
 
@@ -499,104 +765,214 @@ function donutSvg(pct, letter) {
     </div>`;
 }
 
-// ── Render one machine card ─────────────────────────────────────
-function renderCard(data, delay) {
+// ── Mini donut SVG ───────────────────────────────────────────────
+function miniDonutSvg(pct) {
+  const r = 18, circ = Math.PI * 2 * r;
+  const color = donutColor(pct);
+  return `<svg viewBox="0 0 44 44">
+    <circle cx="22" cy="22" r="${r}" fill="none" stroke="#1a2035" stroke-width="7"/>
+    <circle cx="22" cy="22" r="${r}" fill="none" stroke="${color}" stroke-width="7"
+      stroke-dasharray="${(pct/100)*circ} ${circ}" stroke-linecap="round"
+      transform="rotate(-90 22 22)"/>
+  </svg>`;
+}
+
+// ── Render compact list card ─────────────────────────────────────
+function renderCard(data, idx) {
+  const sev = worstSeverity(data.drives);
+  return `
+    <div class="machine-card" onclick="openModal(${idx})">
+      <div class="card-header">
+        ${pcIconSvg()}
+        <div class="card-main">
+          <div class="card-name-row">
+            <span class="card-hostname">${data.computerName}</span>
+            <span class="sev-pill ${sev}">
+              <span class="dot"></span>
+              <span class="sev-count">${data.drives.length}</span>
+            </span>
+          </div>
+          <div class="card-date">${fmtDate(data.collectedAt)}</div>
+        </div>
+      </div>
+    </div>`;
+}
+
+// ── Build modal detail content for one machine ───────────────────
+function buildModalContent(data) {
   const sev = worstSeverity(data.drives);
 
   let totalAll = 0, usedAll = 0, freeAll = 0;
-  data.drives.forEach(d => {
-    totalAll += d.totalBytes;
-    usedAll  += d.usedBytes;
-    freeAll  += d.freeBytes;
-  });
+  data.drives.forEach(d => { totalAll += d.totalBytes; usedAll += d.usedBytes; freeAll += d.freeBytes; });
   const pctAll = totalAll > 0 ? ((usedAll / totalAll) * 100).toFixed(2) : 0;
+  const worstDrive = data.drives.reduce((a, b) => a.usedPercent > b.usedPercent ? a : b);
+  const donutLetter = data.drives.length === 1 ? data.drives[0].letter : '';
+  const donutPct    = data.drives.length === 1 ? data.drives[0].usedPercent : parseFloat(pctAll);
 
-  // Pick which drive to show in the donut
-  // If single drive → show that drive letter. If multi → show worst drive.
-  let donutLetter, donutPct;
-  if (data.drives.length === 1) {
-    donutLetter = data.drives[0].letter;
-    donutPct = data.drives[0].usedPercent;
-  } else {
-    // Show overall
-    donutLetter = '';
-    donutPct = parseFloat(pctAll);
-  }
+  // Header
+  const header = `
+    ${pcIconSvg()}
+    <span class="card-hostname">${data.computerName}</span>
+    <div class="status-badge ${sev}"><span class="dot"></span>${sevLabel(sev)}</div>
+    <span class="drive-count-badge">${data.drives.length} meghajtó</span>
+    <span class="card-date">${fmtDate(data.collectedAt)}</span>
+    <button class="modal-close" onclick="closeModal()">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+           stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+    </button>`;
 
-  // Table rows
+  // Overview tiles
+  const overview = `
+    <div class="section-block">
+      <div class="section-label">Áttekintés</div>
+      <div class="overview-grid">
+        <div class="ov-tile neutral">
+          <div class="ov-value">${data.drives.length}</div>
+          <div class="ov-label">Meghajtó</div>
+        </div>
+        <div class="ov-tile neutral">
+          <div class="ov-value" style="font-size:1rem">${fmtBytes(totalAll)}</div>
+          <div class="ov-label">Összes tár</div>
+        </div>
+        <div class="ov-tile ${severity(parseFloat(pctAll))}">
+          <div class="ov-value">${pctAll}%</div>
+          <div class="ov-label">Átlagos telítettség</div>
+        </div>
+        <div class="ov-tile ${severity(worstDrive.usedPercent)}">
+          <div class="ov-value">${worstDrive.letter} ${worstDrive.usedPercent}%</div>
+          <div class="ov-label">Legtelítettebb</div>
+        </div>
+        <div class="ov-tile ok">
+          <div class="ov-value" style="font-size:1rem">${fmtBytes(freeAll)}</div>
+          <div class="ov-label">Szabad összesen</div>
+        </div>
+      </div>
+    </div>`;
+
+  // Left column: per-drive mini tiles
+  let driveTiles = '';
+  data.drives.forEach(d => {
+    const s = severity(d.usedPercent);
+    driveTiles += `
+      <div class="drive-tile ${s}">
+        <div class="mini-donut-wrap">
+          ${miniDonutSvg(d.usedPercent)}
+          <div class="mini-donut-center">${d.usedPercent}%</div>
+        </div>
+        <div class="drive-tile-info">
+          <div class="drive-tile-letter">${d.letter}</div>
+          <div class="drive-tile-label">${d.label || d.fileSystem || 'Local'}</div>
+          <div class="drive-tile-sizes">
+            ${fmtBytes(d.usedBytes)} / ${fmtBytes(d.totalBytes)}<br>
+            Szabad: ${fmtBytes(d.freeBytes)}
+          </div>
+        </div>
+        <div class="drive-tile-pct ${s}">${d.usedPercent}%</div>
+      </div>`;
+  });
+
+  // Right column: big donut + table
   let rows = '';
   data.drives.forEach(d => {
     const s = severity(d.usedPercent);
-    rows += `
-      <tr>
-        <td class="td-drive">${d.letter}</td>
-        <td class="td-type">${d.type || 'Local'}</td>
-        <td class="td-label">${d.label || '—'}</td>
-        <td class="td-fs">${d.fileSystem || '—'}</td>
-        <td>${fmtBytes(d.totalBytes)}</td>
-        <td>${fmtBytes(d.usedBytes)}</td>
-        <td>${fmtBytes(d.freeBytes)}</td>
-        <td class="td-pct ${s}">${d.usedPercent}%</td>
-      </tr>`;
+    rows += `<tr>
+      <td class="td-drive">${d.letter}</td>
+      <td class="td-type">${d.type || 'Local'}</td>
+      <td class="td-label">${d.label || '—'}</td>
+      <td class="td-fs">${d.fileSystem || '—'}</td>
+      <td>${fmtBytes(d.totalBytes)}</td>
+      <td>${fmtBytes(d.usedBytes)}</td>
+      <td>${fmtBytes(d.freeBytes)}</td>
+      <td class="td-pct ${s}">${d.usedPercent}%</td>
+    </tr>`;
   });
 
-  return `
-    <div class="machine-card" style="animation-delay:${delay}ms">
-      <div class="card-header">
-        ${pcIconSvg()}
-        <span class="card-hostname">${data.computerName}</span>
-        <div class="status-badge ${sev}">
-          <span class="dot"></span>
-          ${sevLabel(sev)}
-        </div>
-        <span class="drive-count-badge">${data.drives.length} meghajtó</span>
-        <span class="card-date">${fmtDate(data.collectedAt)}</span>
+  const colsHtml = `
+    <div class="modal-cols">
+      <div class="modal-col-left">
+        <div class="section-label">Meghajtók</div>
+        <div class="drives-grid">${driveTiles}</div>
       </div>
-
-      <div class="card-body">
-        <div class="card-body-title">Tárhely (minden meghajtó)</div>
+      <div class="modal-col-right">
+        <div class="section-label">Tárhely részletek</div>
         <div class="storage-layout">
           ${donutSvg(donutPct, donutLetter)}
           <div class="drive-table-wrap">
             <table class="drive-table">
-              <thead>
-                <tr>
-                  <th>Drive</th>
-                  <th>Type</th>
-                  <th>Label</th>
-                  <th>FS</th>
-                  <th>Size</th>
-                  <th>Used</th>
-                  <th>Free</th>
-                  <th>Used%</th>
-                </tr>
-              </thead>
+              <thead><tr>
+                <th>Drive</th><th>Type</th><th>Label</th><th>FS</th>
+                <th>Size</th><th>Used</th><th>Free</th><th>Used%</th>
+              </tr></thead>
               <tbody>${rows}</tbody>
             </table>
           </div>
         </div>
       </div>
+    </div>`;
 
-      <div class="card-footer">
-        <div class="footer-stat">
-          <div class="footer-stat-label">Meghajtók</div>
-          <div class="footer-stat-value">${data.drives.length}</div>
-        </div>
-        <div class="footer-stat">
-          <div class="footer-stat-label">Összes tár</div>
-          <div class="footer-stat-value">${fmtBytes(totalAll)}</div>
-        </div>
-        <div class="footer-stat">
-          <div class="footer-stat-label">Foglalt</div>
-          <div class="footer-stat-value">${pctAll}%</div>
-        </div>
-        <div class="footer-stat">
-          <div class="footer-stat-label">Szabad</div>
-          <div class="footer-stat-value free-color">${fmtBytes(freeAll)}</div>
-        </div>
+  // Footer
+  const footer = `
+    <div class="card-footer">
+      <div class="footer-stat">
+        <div class="footer-stat-label">Meghajtók</div>
+        <div class="footer-stat-value">${data.drives.length}</div>
+      </div>
+      <div class="footer-stat">
+        <div class="footer-stat-label">Összes tár</div>
+        <div class="footer-stat-value">${fmtBytes(totalAll)}</div>
+      </div>
+      <div class="footer-stat">
+        <div class="footer-stat-label">Foglalt</div>
+        <div class="footer-stat-value">${pctAll}%</div>
+      </div>
+      <div class="footer-stat">
+        <div class="footer-stat-label">Szabad</div>
+        <div class="footer-stat-value free-color">${fmtBytes(freeAll)}</div>
       </div>
     </div>`;
+
+  return { header, body: overview + colsHtml + footer };
 }
+
+// ── Modal open / close ───────────────────────────────────────────
+let machinesData = [];
+let activeCardIdx = -1;
+
+function openModal(idx) {
+  // Remove previous selection
+  if (activeCardIdx >= 0) {
+    const prev = document.querySelector('.machine-card.selected');
+    if (prev) prev.classList.remove('selected');
+  }
+  activeCardIdx = idx;
+
+  // Highlight clicked card
+  const cards = document.querySelectorAll('.machine-card');
+  if (cards[idx]) cards[idx].classList.add('selected');
+
+  const data = machinesData[idx];
+  const { header, body } = buildModalContent(data);
+  document.getElementById('modalHeader').innerHTML = header;
+  document.getElementById('modalBody').innerHTML   = body;
+  document.getElementById('modalCard').scrollTop   = 0;
+  document.getElementById('modalOverlay').classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+
+function closeModal() {
+  document.getElementById('modalOverlay').classList.remove('open');
+  document.body.style.overflow = '';
+  // Remove green highlight
+  const sel = document.querySelector('.machine-card.selected');
+  if (sel) sel.classList.remove('selected');
+  activeCardIdx = -1;
+}
+
+function overlayClick(e) {
+  if (e.target === document.getElementById('modalOverlay')) closeModal();
+}
+
+document.addEventListener('keydown', e => { if (e.key === 'Escape') closeModal(); });
 
 // ── Main loader ─────────────────────────────────────────────────
 async function loadDashboard() {
@@ -613,31 +989,27 @@ async function loadDashboard() {
     }
   } catch (_) {}
 
-  // Fallback probe
   if (!fileList || fileList.length === 0) {
     const probe = [
       'WS-BUDAPEST-01.json','SRV-DB-PROD.json','SRV-FILES-02.json',
       'MININT-FC67EJM.json','DESKTOP-01.json','LAPTOP-01.json'
     ];
-    fileList = [];
-    for (const f of probe) {
-      try {
-        const r = await fetch(JSON_DIR + '/' + f, { method: 'HEAD' });
-        if (r.ok) fileList.push(f);
-      } catch (_) {}
-    }
+    // parallel HEAD requests
+    const hits = await Promise.all(probe.map(f =>
+      fetch(JSON_DIR + '/' + f, { method: 'HEAD' })
+        .then(r => r.ok ? f : null).catch(() => null)
+    ));
+    fileList = hits.filter(Boolean);
   }
 
-  const machines = [];
-  for (const f of fileList) {
-    try {
-      const r = await fetch(JSON_DIR + '/' + f);
-      if (r.ok) machines.push(await r.json());
-    } catch (_) {}
-  }
+  // parallel JSON downloads
+  const results = await Promise.all(fileList.map(f =>
+    fetch(JSON_DIR + '/' + f)
+      .then(r => r.ok ? r.json() : null).catch(() => null)
+  ));
+  machinesData = results.filter(Boolean);
 
-  // Sort: critical → warn → ok, then alphabetical
-  machines.sort(function(a, b) {
+  machinesData.sort(function(a, b) {
     var p = {crit:0, warn:1, ok:2};
     var sa = p[worstSeverity(a.drives)];
     var sb = p[worstSeverity(b.drives)];
@@ -645,20 +1017,18 @@ async function loadDashboard() {
     return a.computerName.localeCompare(b.computerName);
   });
 
-  if (machines.length === 0) {
+  if (machinesData.length === 0) {
     grid.innerHTML =
-      '<div class="empty" style="grid-column:1/-1">' +
-      '<p>Nem található JSON fájl a <strong>/' + JSON_DIR + '/</strong> mappában.<br>' +
-      'Futtasd a <code>Collect-DiskInfo.ps1</code> scriptet, majd másold ide a JSON-t.</p>' +
-      '</div>';
+      '<div class="empty"><p>Nem található JSON fájl a <strong>/' + JSON_DIR +
+      '/</strong> mappában.<br>Futtasd a <code>Collect-DiskInfo.ps1</code> scriptet.</p></div>';
     return;
   }
 
-  meta.textContent = machines.length + ' gép  ·  frissítés: ' + new Date().toLocaleString('hu-HU');
+  meta.textContent = machinesData.length + ' gép  ·  frissítés: ' + new Date().toLocaleString('hu-HU');
 
   var html = '';
-  for (var i = 0; i < machines.length; i++) {
-    html += renderCard(machines[i], i * 100);
+  for (var i = 0; i < machinesData.length; i++) {
+    html += renderCard(machinesData[i], i);
   }
   grid.innerHTML = html;
 }
